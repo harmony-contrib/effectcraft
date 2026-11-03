@@ -2,35 +2,37 @@
 
 use crate::EffectcraftApp;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
 use craft_update::dialog::{CheckResultDialog, CheckResultResponse};
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
 use craft_update::updater::{Action, Status, Updater};
 
+#[cfg_attr(any(target_arch = "wasm32", target_env = "ohos"), derive(Default))]
 pub(crate) struct Runtime {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     updater: Updater,
     /// The desktop app turns the check at start on; tests and the web build leave it off.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     startup_check: bool,
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     check_requested: bool,
     pub(crate) manual_window_open: bool,
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
     pub(crate) status_message: Option<String>,
 }
 
+#[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
 impl Default for Runtime {
     fn default() -> Self {
         Self {
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
             updater: Updater::new(&crate::UPDATE_APP, env!("CARGO_PKG_VERSION")),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
             startup_check: false,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
             check_requested: false,
             manual_window_open: false,
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
             status_message: None,
         }
     }
@@ -38,27 +40,31 @@ impl Default for Runtime {
 
 impl EffectcraftApp {
     /// Whether the app asks for a newer release when it starts (off until the desktop app turns it on).
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     pub fn set_startup_update_check(&mut self, on: bool) {
         self.updates_rt.startup_check = on;
     }
 }
 
 pub(crate) fn check(app: &mut EffectcraftApp) {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     {
         app.updates_rt.check_requested = true;
         app.updates_rt.manual_window_open = true;
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
     {
         app.updates_rt.manual_window_open = true;
-        app.updates_rt.status_message = Some(crate::i18n::tr("Update check is not supported in the web browser.").to_string());
+        #[cfg(target_arch = "wasm32")]
+        let message = crate::i18n::tr("Update check is not supported in the web browser.").to_string();
+        #[cfg(target_env = "ohos")]
+        let message = "Update EffectCraft through your OpenHarmony app distributor.".to_string();
+        app.updates_rt.status_message = Some(message);
     }
 }
 
 pub(crate) fn tick(app: &mut EffectcraftApp, ctx: &egui::Context) {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     {
         let rt = &mut app.updates_rt;
         if std::mem::take(&mut rt.check_requested) {
@@ -68,12 +74,12 @@ pub(crate) fn tick(app: &mut EffectcraftApp, ctx: &egui::Context) {
         }
         rt.updater.tick(ctx);
     }
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
     let _ = (app, ctx);
 }
 
 pub(crate) fn show(app: &mut EffectcraftApp, ctx: &egui::Context) {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))]
     {
         // The restart helper is scheduled before the app closes, so no update starts over unsaved work.
         let clean = !app.session.is_dirty();
@@ -99,7 +105,7 @@ pub(crate) fn show(app: &mut EffectcraftApp, ctx: &egui::Context) {
         }
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(any(target_arch = "wasm32", target_env = "ohos"))]
     if app.updates_rt.manual_window_open {
         let mut open = true;
         let mut close = false;

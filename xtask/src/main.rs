@@ -61,6 +61,7 @@ const LAYERS: &[(&str, u8)] = &[
     ("ui-egui", 5),
     ("automation", 5),
     ("effectcraft", 6),
+    ("ohos", 6),
     ("cli", 6),
     ("web", 6),
 ];
@@ -86,6 +87,7 @@ const SAME_LAYER: &[(&str, &str)] = &[
     ("script", "engine"),
     ("host", "script"),
     ("cli", "effectcraft"),
+    ("ohos", "effectcraft"),
 ];
 
 /// Crates that must not appear below L5 (UI toolkits, windowing, OS audio/menus).

@@ -371,9 +371,40 @@ pub fn install(ctx: &egui::Context, t: &Tokens, language: &str) {
         }
         stack.push("noto-symbols2".into());
     }
+    #[cfg(target_env = "ohos")]
+    install_ohos_cjk_fonts(&mut fonts, language);
     install_script_fallbacks(&mut fonts, language);
     ctx.set_fonts(fonts);
     apply_visuals(ctx, t);
+}
+
+/// OHOS fonts live outside the desktop font directories used by the text engine.
+#[cfg(target_env = "ohos")]
+fn install_ohos_cjk_fonts(fonts: &mut FontDefinitions, language: &str) {
+    use std::io::Read;
+    let mut paths = ["/system/fonts/HarmonyOS_Sans_SC.ttf", "/system/fonts/HarmonyOS_Sans_TC.ttf"];
+    if language == "zh-hant" {
+        paths.reverse();
+    }
+    for path in paths {
+        let read = || -> std::io::Result<Vec<u8>> {
+            let mut bytes = Vec::new();
+            std::fs::File::open(path)?.take(32 * 1024 * 1024 + 1).read_to_end(&mut bytes)?;
+            if bytes.len() > 32 * 1024 * 1024 {
+                return Err(std::io::Error::other("system CJK font exceeds the supported size"));
+            }
+            Ok(bytes)
+        };
+        match read() {
+            Ok(bytes) => {
+                fonts.font_data.insert(path.into(), Arc::new(FontData::from_owned(bytes)));
+                for stack in fonts.families.values_mut() {
+                    stack.push(path.into());
+                }
+            }
+            Err(error) => log::warn!("Cannot load {path}: {error}"),
+        }
+    }
 }
 
 /// Scripts the bundled fonts lack beyond CJK, each probed with one of its letters: names typed in

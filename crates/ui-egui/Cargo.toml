@@ -34,10 +34,12 @@ kurbo = { workspace = true }
 image = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-# Floating panels open in OS windows of their own on desktop; the web keeps them in the page.
+# The docking adapter uses this API on OHOS too; its host embeds the viewports.
 craft-ui = { workspace = true, features = ["native-windows"] }
-craft-update = { workspace = true }
 sys-locale = { workspace = true }
+
+[target.'cfg(all(not(target_arch = "wasm32"), not(target_env = "ohos")))'.dependencies]
+craft-update = { workspace = true }
 
 [dev-dependencies]
 # Fonts for kittest: the workspace `egui` features are what test roots resolve, but stating them
