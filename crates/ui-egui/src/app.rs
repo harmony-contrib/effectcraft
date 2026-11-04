@@ -20,6 +20,11 @@ pub use gpu::{GPU_PREPARING, GpuBuild};
 pub(crate) use screenshot::{MAX_PENDING_SHOTS, SCREENSHOT_SETTLE_PASSES, SCREENSHOT_SETTLE_S, SCREENSHOT_TIMEOUT_S};
 
 impl EffectcraftApp {
+    /// Name of this distribution, independent of the project format.
+    pub fn display_name(&self) -> &'static str {
+        self.hooks.branding.map_or("EffectCraft", |branding| branding.name)
+    }
+
     /// The window title as of the last tick (`EffectCraft - <project>`, ` *` while modified). The
     /// app sends it as `ViewportCommand::Title`, which eframe on the web ignores: that host writes
     /// it to `document.title`.

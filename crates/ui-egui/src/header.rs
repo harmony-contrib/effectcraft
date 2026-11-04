@@ -38,11 +38,12 @@ pub fn show(app: &mut EffectcraftApp, ui: &mut egui::Ui, rect: Rect) {
 fn brand_and_home(app: &mut EffectcraftApp, ui: &mut egui::Ui, p: &egui::Painter, mut x: f32, cy: f32) -> f32 {
     let t = app.tokens;
     let brand = Rect::from_min_size(pos2(x, cy - 12.0), vec2(24.0, 24.0));
-    paint_logo(p, brand);
+    paint_logo(p, brand, app.hooks.branding);
     let bresp = ui.interact(brand, egui::Id::unique("brand"), Sense::click());
-    app.auto.add_response("header.about", &bresp, "About EffectCraft");
+    let about = format!("About {}", app.display_name());
+    app.auto.add_response("header.about", &bresp, &about);
     widgets::focus_outline(ui, &bresp, &t);
-    if bresp.on_hover_text(tr("About EffectCraft")).clicked() {
+    if bresp.on_hover_text(tr("About EffectCraft").replace("EffectCraft", app.display_name())).clicked() {
         app.dialog = Some(Dialog::About);
     }
     x += 32.0;
@@ -297,6 +298,9 @@ fn right_side(app: &mut EffectcraftApp, ui: &mut egui::Ui, p: &egui::Painter, re
 
 /// The Discord pill and the GitHub and website buttons, right to left from `rx`; returns the new `rx`.
 fn community_buttons(app: &mut EffectcraftApp, ui: &mut egui::Ui, p: &egui::Painter, mut rx: f32, cy: f32) -> f32 {
+    if app.hooks.branding.is_some() {
+        return rx;
+    }
     let t = app.tokens;
     // The pill fits its label (icon, gap, text) with even padding: it was a fixed 104 px with the
     // text at its left, which left a wide gap on the right (#581).
@@ -903,15 +907,20 @@ fn run_workspace_command(app: &mut EffectcraftApp, ui: &egui::Ui, id: &str) {
 
 /// The ArtCraft mark as supplied in `docs/brand` (the README's and getartcraft.com's logo; used
 /// unmodified, see `docs/brand/LICENSE-brand.txt`).
+#[cfg(feature = "upstream-branding")]
 static ARTCRAFT_MARK: &[u8] = include_bytes!("../../../docs/brand/artcraft-mark.png");
+
+#[cfg(not(feature = "upstream-branding"))]
+static ARTCRAFT_MARK: &[u8] = &[];
 
 /// The ArtCraft mark in `r` (decoded once into a mipmapped texture, so it stays crisp from the
 /// 24 px Tools bar to the About dialog). Nothing is drawn if it can't be decoded.
-pub fn paint_logo(p: &egui::Painter, r: Rect) {
+pub fn paint_logo(p: &egui::Painter, r: Rect, branding: Option<crate::Branding>) {
     let ctx = p.ctx();
-    let id = egui::Id::unique("artcraft-mark");
+    let id = branding.map_or_else(|| egui::Id::unique("artcraft-mark"), crate::Branding::icon_key);
+    let bytes = branding.map_or(ARTCRAFT_MARK, |branding| branding.icon_png);
     let tex = ctx.data(|d| d.get_temp::<Option<egui::TextureHandle>>(id)).unwrap_or_else(|| {
-        let tex = image::load_from_memory_with_format(ARTCRAFT_MARK, image::ImageFormat::Png).ok().map(|img| {
+        let tex = image::load_from_memory_with_format(bytes, image::ImageFormat::Png).ok().map(|img| {
             let img = img.to_rgba8();
             let ci = egui::ColorImage::from_rgba_unmultiplied([img.width() as usize, img.height() as usize], img.as_raw());
             ctx.load_texture("artcraft-mark", ci, egui::TextureOptions::LINEAR.with_mipmap_mode(Some(egui::TextureFilter::Linear)))

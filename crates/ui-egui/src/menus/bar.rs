@@ -57,7 +57,7 @@ pub fn menu_bar(app: &mut EffectcraftApp, ui: &mut egui::Ui) {
                 if open_prev == Some(drawn) {
                     ui.style_mut().visuals.widgets.inactive = ui.style().visuals.widgets.open;
                 }
-                let mut response = ui.add(egui::Button::new(crate::i18n::label(app, "", label)));
+                let mut response = ui.add(egui::Button::new(crate::i18n::label(app, "", label).replace("EffectCraft", app.display_name())));
                 ui.style_mut().visuals.widgets.inactive = inactive;
                 // A press on a title opens its menu at once (a second press on the open one closes
                 // it), and while it is held the menus below are browsable. The keyboard and the

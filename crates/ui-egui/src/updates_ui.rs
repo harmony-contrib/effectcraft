@@ -58,7 +58,7 @@ pub(crate) fn check(app: &mut EffectcraftApp) {
         #[cfg(target_arch = "wasm32")]
         let message = crate::i18n::tr("Update check is not supported in the web browser.").to_string();
         #[cfg(target_env = "ohos")]
-        let message = "Update EffectCraft through your OpenHarmony app distributor.".to_string();
+        let message = format!("Update {} through your OpenHarmony app distributor.", app.display_name());
         app.updates_rt.status_message = Some(message);
     }
 }

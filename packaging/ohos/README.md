@@ -53,3 +53,16 @@ the current cpal dependency has no OpenHarmony backend.
 starts the existing localhost JSON-lines control server on port 7878 and writes
 `{"port":7878}` to `control.json` in the preferences directory. Ordinary builds
 do not start that server. Device validation is a separate task.
+
+## Separately branded hosts
+
+The frontend exposes `Branding { name, icon_png, attribution }` through `Hooks::branding`.
+A downstream host can supply its own distribution name and PNG without copying or editing
+frontend sources. The title, welcome screen, header/About mark and attribution use that
+identity; the upstream community promotions are omitted for a branded host. Contributor
+and model credits remain available. `None` preserves the upstream desktop and web identity.
+The PNG is cached separately for each host-provided byte slice.
+
+Forks must also set `default-features = false` on the frontend dependency to exclude the
+`upstream-branding` feature and its ArtCraft trademark artwork from their binaries.
+The default feature remains enabled for upstream desktop, web and OHOS applications.

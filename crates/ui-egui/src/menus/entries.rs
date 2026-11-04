@@ -35,7 +35,8 @@ pub(crate) fn entry_label(app: &EffectcraftApp, e: &MenuEntry) -> String {
         }
         _ => effectcraft_engine::menus::entry_label(&app.session, e),
     };
-    crate::i18n::entry(app, e, shown)
+    let label = crate::i18n::entry(app, e, shown);
+    if matches!(e.command.as_str(), "app.about" | "app.hide" | "app.quit") { label.replace("EffectCraft", app.display_name()) } else { label }
 }
 
 /// The entry's shortcut in the active keyboard shortcut preset.

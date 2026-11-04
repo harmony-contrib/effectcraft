@@ -104,7 +104,7 @@ fn page_ui(app: &mut EffectcraftApp, ui: &mut egui::Ui, page: &Page, cur: &Value
             Item::Setting { key, label, kind, live } => {
                 let v = get(key);
                 let id = format!("settings.{key}");
-                let tip = (!live).then(|| tr("Stored, but not used by EffectCraft yet"));
+                let tip = (!live).then(|| tr("Stored, but not used by EffectCraft yet").replace("EffectCraft", app.display_name()));
                 let mut resp: Option<egui::Response> = None;
                 // What the control is set to, for assistive technology.
                 let mut value_text = String::new();
@@ -872,7 +872,7 @@ pub fn recovery(app: &mut EffectcraftApp, ctx: &egui::Context, t: &Tokens) {
     };
     let mut choice: Option<&str> = None;
     super::dialogs::modal(ctx, "Recover Project", vec2(560.0, 230.0), t, |ui| {
-        ui.label(tr("EffectCraft didn't quit normally last time."));
+        ui.label(tr("EffectCraft didn't quit normally last time.").replace("EffectCraft", app.display_name()));
         ui.add_space(6.0);
         if let Some(p) = &r.project {
             ui.label(tr_args("Project: {}", &[&p]));

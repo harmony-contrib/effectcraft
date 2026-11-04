@@ -9,12 +9,12 @@ const COPY_COMMANDS: &[&str] =
 /// for other applications (#1908), else a line naming what EffectCraft copied. The system
 /// clipboard must hold something: with nothing on it, the windowing layer sends no paste event
 /// for Ctrl+V. Paste in EffectCraft uses its own clipboard either way.
-fn clipboard_text(s: &effectcraft_engine::Session) -> String {
+fn clipboard_text(s: &effectcraft_engine::Session, app_name: &str) -> String {
     let st = &s.state;
     if let Some(text) = &st.keyframe_text {
         return text.clone();
     }
-    let n = |n: usize, one: &str, many: &str| format!("EffectCraft: {n} {}", if n == 1 { one } else { many });
+    let n = |n: usize, one: &str, many: &str| format!("{app_name}: {n} {}", if n == 1 { one } else { many });
     if st.clip_is_keys && !st.key_clipboard.is_empty() {
         n(st.key_clipboard.iter().map(|c| c.keys.len()).sum(), "keyframe", "keyframes")
     } else if !st.effect_clipboard.is_empty() {
@@ -24,7 +24,7 @@ fn clipboard_text(s: &effectcraft_engine::Session) -> String {
     } else if !st.mask_clipboard.is_empty() {
         n(st.mask_clipboard.len(), "mask", "masks")
     } else if st.link_clipboard.is_some() {
-        "EffectCraft: property links".into()
+        format!("{app_name}: property links")
     } else {
         n(st.clipboard.len(), "layer", "layers")
     }
@@ -37,7 +37,7 @@ pub(crate) fn run_engine(app: &mut EffectcraftApp, ctx: &egui::Context, id: &str
     if let Err(e) = &r {
         app.ui.status = e.clone();
     } else if COPY_COMMANDS.contains(&id) && app.session.state.text_edit.is_none() {
-        ctx.copy_text(clipboard_text(&app.session));
+        ctx.copy_text(clipboard_text(&app.session, app.display_name()));
     }
     let events = app.session.drain_events();
     for (index, ev) in events.into_iter().enumerate() {

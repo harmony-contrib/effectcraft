@@ -58,6 +58,9 @@ use serde_json::json;
 use state::UiState;
 use theme::Tokens;
 
+mod branding;
+pub use branding::Branding;
+
 mod app;
 mod clock;
 mod hooks;
